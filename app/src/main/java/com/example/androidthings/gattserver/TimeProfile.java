@@ -77,10 +77,10 @@ public class TimeProfile {
     }
 
     /**
-     * Return the current time as an Exact Time 256 Field
-     * for the current time characteristic.
+     * Construct the field values for a Current Time characteristic
+     * from the given epoch timestamp and adjustment reason.
      */
-    public static byte[] getExactTime(long timestamp, int adjustReason) {
+    public static byte[] getExactTime(long timestamp, byte adjustReason) {
         Calendar time = Calendar.getInstance();
         time.setTimeInMillis(timestamp);
 
@@ -91,32 +91,32 @@ public class TimeProfile {
         field[0] = (byte) (year & 0xFF);
         field[1] = (byte) ((year >> 8) & 0xFF);
         // Month
-        field[2] = (byte) ((time.get(Calendar.MONTH) + 1) & 0xFF);
+        field[2] = (byte) (time.get(Calendar.MONTH) + 1);
         // Day
-        field[3] = (byte) (time.get(Calendar.DATE) & 0xFF);
+        field[3] = (byte) time.get(Calendar.DATE);
         // Hours
-        field[4] = (byte) (time.get(Calendar.HOUR_OF_DAY) & 0xFF);
+        field[4] = (byte) time.get(Calendar.HOUR_OF_DAY);
         // Minutes
-        field[5] = (byte) (time.get(Calendar.MINUTE) & 0xFF);
+        field[5] = (byte) time.get(Calendar.MINUTE);
         // Seconds
-        field[6] = (byte) (time.get(Calendar.SECOND) & 0xFF);
+        field[6] = (byte) time.get(Calendar.SECOND);
         // Day of Week (1-7)
         field[7] = getDayOfWeekCode(time.get(Calendar.DAY_OF_WEEK));
         // Fractions256
-        field[8] = (byte) ((time.get(Calendar.MILLISECOND) / 256) & 0xFF);
+        field[8] = (byte) (time.get(Calendar.MILLISECOND) / 256);
 
-        field[9] = (byte) (adjustReason & 0xFF);
+        field[9] = adjustReason;
 
         return field;
     }
 
     /* Time bucket constants for local time information */
     private static final int FIFTEEN_MINUTE_MILLIS = 900000;
-    private static final int ONE_HOUR_MILLIS = 3600000;
+    private static final int HALF_HOUR_MILLIS = 1800000;
 
     /**
-     * Return the time zone and DST offset fields that make up
-     * the local time information characteristic.
+     * Construct the field values for a Local Time Information characteristic
+     * from the given epoch timestamp.
      */
     public static byte[] getLocalTimeInfo(long timestamp) {
         Calendar time = Calendar.getInstance();
@@ -125,12 +125,12 @@ public class TimeProfile {
         byte[] field = new byte[2];
 
         // Time zone
-        int rawOffset = time.get(Calendar.ZONE_OFFSET) / FIFTEEN_MINUTE_MILLIS; // 15 minute increments
-        field[0] = (byte) rawOffset;
+        int zoneOffset = time.get(Calendar.ZONE_OFFSET) / FIFTEEN_MINUTE_MILLIS; // 15 minute intervals
+        field[0] = (byte) zoneOffset;
 
         // DST Offset
-        rawOffset = time.get(Calendar.DST_OFFSET) / ONE_HOUR_MILLIS;
-        field[1] = getDstOffsetCode(rawOffset);
+        int dstOffset = time.get(Calendar.DST_OFFSET) / HALF_HOUR_MILLIS; // 30 minute intervals
+        field[1] = getDstOffsetCode(dstOffset);
 
         return field;
     }
@@ -178,16 +178,18 @@ public class TimeProfile {
     private static final byte DST_UNKNOWN = (byte) 0xFF;
 
     /**
-     * Convert a raw DST offset (in hours) to the corresponding
-     * Bluetooth DST offset code.
+     * Convert a raw DST offset (in 30 minute intervals) to the
+     * corresponding Bluetooth DST offset code.
      */
     private static byte getDstOffsetCode(int rawOffset) {
         switch (rawOffset) {
             case 0:
                 return DST_STANDARD;
             case 1:
-                return DST_SINGLE;
+                return DST_HALF;
             case 2:
+                return DST_SINGLE;
+            case 4:
                 return DST_DOUBLE;
             default:
                 return DST_UNKNOWN;

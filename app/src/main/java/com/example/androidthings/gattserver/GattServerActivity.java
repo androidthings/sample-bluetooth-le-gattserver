@@ -37,16 +37,23 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.WindowManager;
+import android.widget.TextView;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 public class GattServerActivity extends Activity {
     private static final String TAG = GattServerActivity.class.getSimpleName();
 
+    /* Local UI */
+    private TextView mLocalTimeView;
     /* Bluetooth API */
+    private BluetoothManager mBluetoothManager;
     private BluetoothGattServer mBluetoothGattServer;
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
     /* Collection of notification subscribers */
@@ -55,10 +62,15 @@ public class GattServerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_server);
 
-        BluetoothManager manager =
-                (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = manager.getAdapter();
+        mLocalTimeView = (TextView) findViewById(R.id.text_time);
+
+        // Devices with a display should not go to sleep
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        mBluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
+        BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
         // We can't continue without proper Bluetooth support
         if (!checkBluetoothSupport(bluetoothAdapter)) {
             finish();
@@ -72,8 +84,8 @@ public class GattServerActivity extends Activity {
             bluetoothAdapter.enable();
         } else {
             Log.d(TAG, "Bluetooth enabled...starting services");
-            startAdvertising(manager);
-            startServer(manager);
+            startAdvertising();
+            startServer();
         }
     }
 
@@ -98,9 +110,7 @@ public class GattServerActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
 
-        BluetoothManager manager =
-                (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = manager.getAdapter();
+        BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
         if (bluetoothAdapter.isEnabled()) {
             stopServer();
             stopAdvertising();
@@ -136,7 +146,7 @@ public class GattServerActivity extends Activity {
     private BroadcastReceiver mTimeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int adjustReason;
+            byte adjustReason;
             switch (intent.getAction()) {
                 case Intent.ACTION_TIME_CHANGED:
                     adjustReason = TimeProfile.ADJUST_MANUAL;
@@ -149,7 +159,9 @@ public class GattServerActivity extends Activity {
                     adjustReason = TimeProfile.ADJUST_NONE;
                     break;
             }
-            notifyRegisteredDevices(adjustReason);
+            long now = System.currentTimeMillis();
+            notifyRegisteredDevices(now, adjustReason);
+            updateLocalUi(now);
         }
     };
 
@@ -162,12 +174,10 @@ public class GattServerActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
 
-            BluetoothManager manager =
-                    (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
             switch (state) {
                 case BluetoothAdapter.STATE_ON:
-                    startAdvertising(manager);
-                    startServer(manager);
+                    startAdvertising();
+                    startServer();
                     break;
                 case BluetoothAdapter.STATE_OFF:
                     stopServer();
@@ -184,8 +194,8 @@ public class GattServerActivity extends Activity {
      * Begin advertising over Bluetooth that this device is connectable
      * and supports the Current Time Service.
      */
-    private void startAdvertising(BluetoothManager bluetoothManager) {
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+    private void startAdvertising() {
+        BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
         mBluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
         if (mBluetoothLeAdvertiser == null) {
             Log.w(TAG, "Failed to create advertiser");
@@ -222,14 +232,17 @@ public class GattServerActivity extends Activity {
      * Initialize the GATT server instance with the services/characteristics
      * from the Time Profile.
      */
-    private void startServer(BluetoothManager bluetoothManager) {
-        mBluetoothGattServer = bluetoothManager.openGattServer(this, mGattServerCallback);
+    private void startServer() {
+        mBluetoothGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
         if (mBluetoothGattServer == null) {
             Log.w(TAG, "Unable to create GATT server");
             return;
         }
 
         mBluetoothGattServer.addService(TimeProfile.createTimeService());
+
+        // Initialize the local UI
+        updateLocalUi(System.currentTimeMillis());
     }
 
     /**
@@ -260,12 +273,12 @@ public class GattServerActivity extends Activity {
      * Send a time service notification to any devices that are subscribed
      * to the characteristic.
      */
-    public void notifyRegisteredDevices(int adjustReason) {
+    private void notifyRegisteredDevices(long timestamp, byte adjustReason) {
         if (mRegisteredDevices.isEmpty()) {
             Log.i(TAG, "No subscribers registered");
             return;
         }
-        byte[] exactTime = TimeProfile.getExactTime(System.currentTimeMillis(), adjustReason);
+        byte[] exactTime = TimeProfile.getExactTime(timestamp, adjustReason);
 
         Log.i(TAG, "Sending update to " + mRegisteredDevices.size() + " subscribers");
         for (BluetoothDevice device : mRegisteredDevices) {
@@ -275,6 +288,17 @@ public class GattServerActivity extends Activity {
             timeCharacteristic.setValue(exactTime);
             mBluetoothGattServer.notifyCharacteristicChanged(device, timeCharacteristic, false);
         }
+    }
+
+    /**
+     * Update graphical UI on devices that support it with the current time.
+     */
+    private void updateLocalUi(long timestamp) {
+        Date date = new Date(timestamp);
+        String displayDate = DateFormat.getMediumDateFormat(this).format(date)
+                + "\n"
+                + DateFormat.getTimeFormat(this).format(date);
+        mLocalTimeView.setText(displayDate);
     }
 
     /**
@@ -289,6 +313,8 @@ public class GattServerActivity extends Activity {
                 Log.i(TAG, "BluetoothDevice CONNECTED: " + device);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "BluetoothDevice DISCONNECTED: " + device);
+                //Remove device from any active subscriptions
+                mRegisteredDevices.remove(device);
             }
         }
 
