@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textSize="56dp"
+        android:textSize="56sp"
         tools:text="01/01/1970\n12:00"/>
 
 </FrameLayout>

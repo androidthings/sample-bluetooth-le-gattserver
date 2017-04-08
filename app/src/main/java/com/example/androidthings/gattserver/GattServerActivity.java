@@ -57,7 +57,7 @@ public class GattServerActivity extends Activity {
     private BluetoothGattServer mBluetoothGattServer;
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
     /* Collection of notification subscribers */
-    private Set<BluetoothDevice> mRegisteredDevices = new HashSet<>();
+    private final Set<BluetoothDevice> mRegisteredDevices = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,7 +143,7 @@ public class GattServerActivity extends Activity {
      * Listens for system time changes and triggers a notification to
      * Bluetooth subscribers.
      */
-    private BroadcastReceiver mTimeReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mTimeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             byte adjustReason;
@@ -169,7 +169,7 @@ public class GattServerActivity extends Activity {
      * Listens for Bluetooth adapter events to enable/disable
      * advertising and server functionality.
      */
-    private BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
@@ -257,7 +257,7 @@ public class GattServerActivity extends Activity {
     /**
      * Callback to receive information about the advertisement process.
      */
-    private AdvertiseCallback mAdvertiseCallback = new AdvertiseCallback() {
+    private final AdvertiseCallback mAdvertiseCallback = new AdvertiseCallback() {
         @Override
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
             Log.i(TAG, "LE Advertise Started.");
@@ -305,7 +305,7 @@ public class GattServerActivity extends Activity {
      * Callback to handle incoming requests to the GATT server.
      * All read/write requests for characteristics and descriptors are handled here.
      */
-    private BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
+    private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
 
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
