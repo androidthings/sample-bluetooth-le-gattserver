@@ -1,20 +1,18 @@
-Bluetooth GATT Server Sample
-============================
+# Bluetooth GATT Server Sample
+
 This application demonstrates accessing the `BluetoothGattServer` Android API
 from within an Android Things application. The sample application advertises
 the [Current Time Service](https://www.bluetooth.com/specifications/gatt/services),
 and implements the server role of the GATT
 [Time Profile](https://www.bluetooth.com/specifications/adopted-specifications).
 
-Pre-requisites
---------------
+## Pre-requisites
 
 - Android Things compatible board
 - Android device running Android 4.3 (API 18) or later
 - Android Studio 2.2+
 
-Getting Started
----------------
+## Getting Started
 
 1.  Import the project using Android Studio and deploy it to your board.
     The sample will automatically enable the Bluetooth radio, start a GATT
@@ -29,8 +27,7 @@ Getting Started
 7.  Manually [set the time](#setting-the-time) on your board. The time change
     triggers a notification to the client.
 
-Setting the Time
-----------------
+## Setting the Time
 
 You can set the system clock date/time manually on your Android Things board
 with the `date` shell command over [ADB](https://developer.android.com/studio/command-line/adb.html).
@@ -44,8 +41,7 @@ $ adb root
 $ adb shell date 123112002017.00
 ```
 
-Setting the Time Zone
----------------------
+## Setting the Time Zone
 
 You can set the system time zone manually by updating the `persist.sys.timezone`
 system property over [ADB](https://developer.android.com/studio/command-line/adb.html).
@@ -58,8 +54,7 @@ $ adb root
 $ adb shell setprop persist.sys.timezone "America/Denver"
 ```
 
-License
--------
+## License
 
 Copyright 2017 The Android Open Source Project, Inc.
 
