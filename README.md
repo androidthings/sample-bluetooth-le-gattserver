@@ -38,7 +38,7 @@ By default, the command accepts a new date in the `MMddHHmmYYYY.ss` format:
 $ adb root
 
 # Set the date to 2017/12/13 12:00:00
-$ adb shell date 123112002017.00
+$ adb shell date 121312002017.00
 ```
 
 ## Setting the Time Zone
