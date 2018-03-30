@@ -360,7 +360,7 @@ public class GattServerActivity extends Activity {
                 }
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
-                        BluetoothGatt.GATT_SUCCESS,
+                        BluetoothGatt.GATT_FAILURE,
                         0,
                         returnValue);
             } else {
