@@ -37,7 +37,7 @@ By default, the command accepts a new date in the `MMddHHmmYYYY.ss` format:
 # Reboot ADB into root mode
 $ adb root
 
-# Set the date to 2017/12/13 12:00:00
+# Set the date to 2017/12/31 12:00:00
 $ adb shell date 123112002017.00
 ```
 
