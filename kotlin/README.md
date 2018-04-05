@@ -54,6 +54,24 @@ $ adb root
 $ adb shell setprop persist.sys.timezone "America/Denver"
 ```
 
+## Enable auto-launch behavior
+
+This sample app is currently configured to launch only when deployed from your
+development machine. To enable the main activity to launch automatically on boot,
+add the following `intent-filter` to the app's manifest file:
+
+```xml
+<activity ...>
+
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.HOME"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+    </intent-filter>
+
+</activity>
+```
+
 ## License
 
 Copyright 2018 The Android Open Source Project, Inc.
