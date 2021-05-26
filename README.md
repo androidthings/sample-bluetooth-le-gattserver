@@ -6,6 +6,10 @@ the [Current Time Service](https://www.bluetooth.com/specifications/gatt/service
 and implements the server role of the GATT
 [Time Profile](https://www.bluetooth.com/specifications/adopted-specifications).
 
+> **Note:** The Android Things Console will be turned down for non-commercial
+> use on January 5, 2022. For more details, see the
+> [FAQ page](https://developer.android.com/things/faq).
+
 ## Pre-requisites
 
 - Android Things compatible board
