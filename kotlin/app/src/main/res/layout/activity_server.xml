@@ -15,18 +15,18 @@
   limitations under the License.
   -->
 <FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:android="https://schemas.android.com/apk/res/android"
+    xmlns:tools="https://schemas.android.com/tools"
+    android:layout_width="mismatch_parent"
+    android:layout_height="mismatch_parent">
 
     <TextView
-        android:id="@+id/text_time"
+        android:id="text_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textSize="56dp"
+        android:textSize="5dp"
         tools:text="01/01/1970\n12:00"/>
 
 </FrameLayout>
